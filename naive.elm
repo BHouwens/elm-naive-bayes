@@ -67,11 +67,11 @@ getFullDenominator data =
 
 {-| Gets all the data values for a specific class in training data
 -}
-getClassValues : String -> Model -> Maybe (List Int)
-getClassValues a model =
+getSummedValuesForB : String -> Model -> Int
+getSummedValuesForB b model =
     let
         index =
-            elemIndex a model.classes
+            elemIndex b model.classes
         allValues =
             List.map (\n -> n.values) model.data
         arrayOfTransposition =
@@ -79,28 +79,39 @@ getClassValues a model =
     in
         case index of
             Nothing ->
-                Nothing
+                0
             Just x ->
-                Array.get x arrayOfTransposition
+                case Array.get x arrayOfTransposition of
+                    Nothing ->
+                        0
+                    Just y ->
+                        List.sum y
+
+
+{-| Returns the summed values for a given A
+-}
+getSummedValuesForA : String -> List DataEntry -> Int
+getSummedValuesForA a data =
+    let filtered =
+            List.head (List.filter (\n -> n.name == a) data)
+    in
+        case filtered of
+            Nothing ->
+                0
+            Just x ->
+                List.sum x.values
+
 
 
 {-| Finds the probability of A in the classic Naive Bayes algorithm
 -} 
-probabilityOfA : String -> Model -> Float
-probabilityOfA a model =
+probabilityOfA : String -> List DataEntry -> Float
+probabilityOfA a data =
     let 
-        data =
-            model.data
         denominator =
             getFullDenominator data
-        filtered =
-            List.head (List.filter (\n -> n.name == a) data)
         sum =
-            case filtered of
-                Nothing ->
-                    0
-                Just x ->
-                    List.sum x.values
+            getSummedValuesForA a data
     in
         toFloat sum / toFloat denominator
 
@@ -108,25 +119,46 @@ probabilityOfA a model =
 {-| Finds the probability of B in the classic Naive Bayes algorithm
 -}
 probabilityOfB : String -> Model -> Float
-probabilityOfB a model =
+probabilityOfB b model =
     let
-        data =
-            model.data
         denominator =
-            getFullDenominator data
-        values =
-            getClassValues a model
+            getFullDenominator model.data
         sum =
-            case values of
-                Nothing ->
-                    0
-                Just x ->
-                    List.sum x
+            getSummedValuesForB b model
     in
         toFloat sum / toFloat denominator
-        
+
+
+{-| Finds the probability of A given B in the classic Naive Bayes algorithm
+-}
+probabilityOfAGivenB : String -> String -> Model -> Float
+probabilityOfAGivenB a b model =
+    let
+        index = 
+            elemIndex b model.classes
+        summedA =
+            getSummedValuesForA a model.data
+        summedB =
+            getSummedValuesForB b model
+    in
+        toFloat summedA / toFloat summedB
+
+
+{-| Returns the probability of the data value A given a class B
+-}
+posterior : String -> String -> Model -> Float
+posterior a b model =
+    let
+        finalAs =
+            probabilityOfA a model.data
+        finalBs =
+            probabilityOfB b model
+        aGivenB =
+            probabilityOfAGivenB a b model
+    in
+        (aGivenB * finalBs) / finalAs   
+
 
 main : Graphics.Element.Element
 main = 
-    show (toString (probabilityOfB "test2" initialModel))
-
+    show (toString (posterior "suzie" "test1" initialModel))
