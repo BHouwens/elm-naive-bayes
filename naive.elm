@@ -1,7 +1,7 @@
 module NaiveBayes where
 
+
 import Array
-import Graphics.Element exposing (show)
 import List.Extra exposing (elemIndex, transpose, intercalate)
 
 
@@ -24,29 +24,17 @@ newDataEntry name values =
     , values = values
     }
 
+-- test model
 
 initialModel : Model
 initialModel =
-    { classes = ["test1", "test2"]
+    { classes = ["yes", "no"]
     , data = 
-        [ (newDataEntry "john" [1, 2])
-        , (newDataEntry "suzie" [3, 4])
+        [ (newDataEntry "sunny" [3, 2])
+        , (newDataEntry "overcast" [4, 0])
+        , (newDataEntry "rainy" [2, 3])
         ]
     }
-
-
-
--- UPDATE
-
-setData' : List String -> List DataEntry -> Model -> Model
-setData' classes data model =
-    { model 
-    | classes = classes
-    , data = data
-    }
-
-setData : List String -> List DataEntry -> Model
-setData classes data = setData' classes data initialModel
 
 
 
@@ -88,19 +76,39 @@ getSummedValuesForB b model =
                         List.sum y
 
 
+
 {-| Returns the summed values for a given A
 -}
 getSummedValuesForA : String -> List DataEntry -> Int
 getSummedValuesForA a data =
-    let filtered =
+    let 
+        result =
             List.head (List.filter (\n -> n.name == a) data)
     in
-        case filtered of
+        case result of
             Nothing ->
                 0
             Just x ->
                 List.sum x.values
 
+
+{-| Returns the value from the data at the given index
+-}
+getValueAtIndex : String -> Int -> List DataEntry -> Int
+getValueAtIndex a index data =
+    let
+        result =
+            List.head (List.filter (\n -> n.name == a) data)
+    in
+        case result of
+            Nothing ->
+                0
+            Just x ->
+                case Array.get index (Array.fromList x.values) of
+                    Nothing ->
+                        0
+                    Just y ->
+                        y
 
 
 {-| Finds the probability of A in the classic Naive Bayes algorithm
@@ -136,12 +144,18 @@ probabilityOfAGivenB a b model =
     let
         index = 
             elemIndex b model.classes
-        summedA =
-            getSummedValuesForA a model.data
+        filtered =
+            List.head (List.filter (\n -> n.name == a) model.data)
         summedB =
             getSummedValuesForB b model
+        numerator =
+            case index of
+                Nothing ->
+                    0
+                Just x -> 
+                    getValueAtIndex a x model.data
     in
-        toFloat summedA / toFloat summedB
+        toFloat numerator / toFloat summedB
 
 
 {-| Returns the probability of the data value A given a class B
@@ -156,9 +170,4 @@ posterior a b model =
         aGivenB =
             probabilityOfAGivenB a b model
     in
-        (aGivenB * finalBs) / finalAs   
-
-
-main : Graphics.Element.Element
-main = 
-    show (toString (posterior "suzie" "test1" initialModel))
+        (aGivenB * finalBs) / finalAs
