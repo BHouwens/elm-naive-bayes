@@ -1,38 +1,37 @@
 module NaiveBayes where
 
-
 import Array
 import List.Extra exposing (elemIndex, transpose, intercalate)
 
 
 -- MODEL
 
-type alias Model = 
+type alias NaiveBayesModel = 
     { classes : List String
-    , data : List DataEntry 
+    , data : List NaiveBayesDataPoint 
     }
 
-type alias DataEntry = 
+type alias NaiveBayesDataPoint = 
     { name : String 
     , values : List Float
     }
 
 
-newDataEntry : String -> List Float -> DataEntry
-newDataEntry name values =
+newNaiveBayesDataPoint : String -> List Float -> NaiveBayesDataPoint
+newNaiveBayesDataPoint name values =
     { name = name
     , values = values
     }
 
 -- test model
 
-initialModel : Model
+initialModel : NaiveBayesModel
 initialModel =
     { classes = ["yes", "no"]
     , data = 
-        [ (newDataEntry "sunny" [3, 2])
-        , (newDataEntry "overcast" [4, 0])
-        , (newDataEntry "rainy" [2, 3])
+        [ (newNaiveBayesDataPoint "sunny" [3, 2])
+        , (newNaiveBayesDataPoint "overcast" [4, 0])
+        , (newNaiveBayesDataPoint "rainy" [2, 3])
         ]
     }
 
@@ -42,7 +41,7 @@ initialModel =
 
 {-| Gets the full denominator for isolated probability calculations 
 -}
-getFullDenominator : List DataEntry -> Float
+getFullDenominator : List NaiveBayesDataPoint -> Float
 getFullDenominator data =
     let
         allValues =
@@ -55,7 +54,7 @@ getFullDenominator data =
 
 {-| Gets all the data values for a specific class in training data
 -}
-getSummedValuesForB : String -> Model -> Float
+getSummedValuesForB : String -> NaiveBayesModel -> Float
 getSummedValuesForB b model =
     let
         index =
@@ -79,7 +78,7 @@ getSummedValuesForB b model =
 
 {-| Returns the summed values for a given A
 -}
-getSummedValuesForA : String -> List DataEntry -> Float
+getSummedValuesForA : String -> List NaiveBayesDataPoint -> Float
 getSummedValuesForA a data =
     let 
         result =
@@ -94,7 +93,7 @@ getSummedValuesForA a data =
 
 {-| Returns the value from the data at the given index
 -}
-getValueAtIndex : String -> Int -> List DataEntry -> Float
+getValueAtIndex : String -> Int -> List NaiveBayesDataPoint -> Float
 getValueAtIndex a index data =
     let
         result =
@@ -113,7 +112,7 @@ getValueAtIndex a index data =
 
 {-| Finds the probability of A in the classic Naive Bayes algorithm
 -} 
-probabilityOfA : String -> List DataEntry -> Float
+probabilityOfA : String -> List NaiveBayesDataPoint -> Float
 probabilityOfA a data =
     let 
         denominator =
@@ -126,7 +125,7 @@ probabilityOfA a data =
 
 {-| Finds the probability of B in the classic Naive Bayes algorithm
 -}
-probabilityOfB : String -> Model -> Float
+probabilityOfB : String -> NaiveBayesModel -> Float
 probabilityOfB b model =
     let
         denominator =
@@ -139,7 +138,7 @@ probabilityOfB b model =
 
 {-| Finds the probability of A given B in the classic Naive Bayes algorithm
 -}
-probabilityOfAGivenB : String -> String -> Model -> Float
+probabilityOfAGivenB : String -> String -> NaiveBayesModel -> Float
 probabilityOfAGivenB a b model =
     let
         index = 
@@ -158,7 +157,7 @@ probabilityOfAGivenB a b model =
 
 {-| Returns the probability of the data value A given a class B
 -}
-posterior : String -> String -> Model -> Float
+posterior : String -> String -> NaiveBayesModel -> Float
 posterior a b model =
     let
         finalAs =
