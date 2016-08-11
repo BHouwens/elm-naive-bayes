@@ -14,11 +14,11 @@ type alias Model =
 
 type alias DataEntry = 
     { name : String 
-    , values : List Int
+    , values : List Float
     }
 
 
-newDataEntry : String -> (List Int) -> DataEntry
+newDataEntry : String -> List Float -> DataEntry
 newDataEntry name values =
     { name = name
     , values = values
@@ -42,7 +42,7 @@ initialModel =
 
 {-| Gets the full denominator for isolated probability calculations 
 -}
-getFullDenominator : List DataEntry -> Int
+getFullDenominator : List DataEntry -> Float
 getFullDenominator data =
     let
         allValues =
@@ -55,7 +55,7 @@ getFullDenominator data =
 
 {-| Gets all the data values for a specific class in training data
 -}
-getSummedValuesForB : String -> Model -> Int
+getSummedValuesForB : String -> Model -> Float
 getSummedValuesForB b model =
     let
         index =
@@ -79,7 +79,7 @@ getSummedValuesForB b model =
 
 {-| Returns the summed values for a given A
 -}
-getSummedValuesForA : String -> List DataEntry -> Int
+getSummedValuesForA : String -> List DataEntry -> Float
 getSummedValuesForA a data =
     let 
         result =
@@ -94,7 +94,7 @@ getSummedValuesForA a data =
 
 {-| Returns the value from the data at the given index
 -}
-getValueAtIndex : String -> Int -> List DataEntry -> Int
+getValueAtIndex : String -> Int -> List DataEntry -> Float
 getValueAtIndex a index data =
     let
         result =
@@ -121,7 +121,7 @@ probabilityOfA a data =
         sum =
             getSummedValuesForA a data
     in
-        toFloat sum / toFloat denominator
+        sum / denominator
 
 
 {-| Finds the probability of B in the classic Naive Bayes algorithm
@@ -134,7 +134,7 @@ probabilityOfB b model =
         sum =
             getSummedValuesForB b model
     in
-        toFloat sum / toFloat denominator
+        sum / denominator
 
 
 {-| Finds the probability of A given B in the classic Naive Bayes algorithm
@@ -144,8 +144,6 @@ probabilityOfAGivenB a b model =
     let
         index = 
             elemIndex b model.classes
-        filtered =
-            List.head (List.filter (\n -> n.name == a) model.data)
         summedB =
             getSummedValuesForB b model
         numerator =
@@ -155,7 +153,7 @@ probabilityOfAGivenB a b model =
                 Just x -> 
                     getValueAtIndex a x model.data
     in
-        toFloat numerator / toFloat summedB
+        numerator / summedB
 
 
 {-| Returns the probability of the data value A given a class B
